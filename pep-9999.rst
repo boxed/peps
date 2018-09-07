@@ -1,0 +1,113 @@
+PEP: TBD
+Title: Keyword only argument on function call
+Author: Anders Hovmöller <anders.hovmoller@trioptima.com>,
+        Johan Lübcke <johan.lubcke@trioptima.com>
+Status: Active
+Type: Process
+Content-Type: text/x-rst
+Created: 23-Aug-2018
+Post-History: 7-Sep-2018
+
+
+Abstract
+========
+
+This PEP proses an additional optional syntax for function calls that
+can make keyword argument application shorter and more readable.
+
+Rationale
+=========
+
+Keyword arguments increase clarity and make it easier and safer to
+refactor code, but there is an incentive to not use them because it's
+more to type and more to read. A shorter syntax that improves the
+ergonomics of keyword arguments could enable wider use leading to
+more robust code.
+
+Specification
+=============
+
+The proposed change is rather small: it introduces the * operator as
+a valid part of a function call::
+
+    minutes = 5
+    seconds = 7
+    my_datetime.replace(*, minutes, hours=3, seconds)
+
+
+The interpretation here is that everything after * must be keyword
+arguments, analogous to the existing Python syntax for function
+declarations, but here it also implies that if there is no equal sign
+for an argument (minutes and seconds above) then this is implicitly
+filled in. This means the above call is translated at compile time
+to::
+
+    minutes = 5
+    seconds = 7
+    my_datetime.replace(minutes=minutes, hours=3, seconds=seconds)
+
+
+
+More motivating examples
+========================
+
+This syntax can make str.format calls nicer. This example from IPython
+before::
+
+    warn('Output cache limit (currently {sz} entries) hit.\n'
+         'Flushing oldest {cull_count} entries.'.format(sz=sz, cull_count=cull_count))
+
+after::
+
+    warn('Output cache limit (currently {sz} entries) hit.\n'
+         'Flushing oldest {cull_count} entries.'.format(*, sz, cull_count))
+
+Another common case is putting objects in a dict, which is very
+common when doing web development, before::
+
+    context = dict(user=user, issue=issue, project=project, filters=filters, events=events)
+
+or alternatively::
+
+    context = {'user': user, 'issue': issue, 'filters': filters, 'events': events)
+
+after::
+
+    context = dict(*, user, issue, project, filters, events)
+
+This syntax would also create an incentive to clean up and synchronize
+naming in a code base so that you can use the short form instead of the
+long form for keyword arguments.
+
+Alternative rejected syntax
+===========================
+
+A syntax inspired by OCaml has been previously discussed and been
+strongly opposed on the python-ideas mailing list. This syntax was::
+
+    my_datetime.replace(=minutes, hours=3, =seconds)
+
+This alternate syntax is more to type and arguably aesthetically less
+pleasing. It also doesn't look like existing Python syntax.
+
+Backwards Compatibility
+=======================
+
+The function calling behavior specified in this PEP is a superset
+of the existing behavior - that is, it is expected that any
+existing programs will continue to work.
+
+Copyright
+=========
+
+This document has been placed in the public domain.
+
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   coding: utf-8
+   End:
